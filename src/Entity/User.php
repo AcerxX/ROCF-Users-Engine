@@ -47,6 +47,14 @@ class User
     private $lastName;
 
     /**
+     * @var Role
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\Role")
+     * @ORM\JoinColumn(name="role_id", referencedColumnName="id")
+     */
+    private $role;
+
+    /**
      * @return int
      */
     public function getId(): int
@@ -133,6 +141,24 @@ class User
     public function setLastName(string $lastName): User
     {
         $this->lastName = $lastName;
+        return $this;
+    }
+
+    /**
+     * @return Role
+     */
+    public function getRole(): Role
+    {
+        return $this->role;
+    }
+
+    /**
+     * @param Role $role
+     * @return User
+     */
+    public function setRole(Role $role): User
+    {
+        $this->role = $role;
         return $this;
     }
 }

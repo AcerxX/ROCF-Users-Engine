@@ -11,7 +11,6 @@ namespace App\Service;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Bridge\Doctrine\RegistryInterface;
-use Symfony\Bundle\FrameworkBundle\Translation\Translator;
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -25,7 +24,7 @@ class UserService
     protected $doctrine;
 
     /**
-     * @var Translator
+     * @var TranslatorInterface
      */
     protected $translator;
 
@@ -36,20 +35,25 @@ class UserService
     }
 
     /**
-     * @param null|string $email
-     * @param null|string $password
-     * @param null|string $ipAddress
-     * @param null|string $locale
+     * @param array $loginInformation
      * @return array
      * @throws \Symfony\Component\Validator\Exception\MissingOptionsException
      * @throws \Symfony\Component\Validator\Exception\InvalidOptionsException
      * @throws \Symfony\Component\Validator\Exception\ConstraintDefinitionException
      * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
      */
-    public function validateLogin(?string $email, ?string $password, ?string $ipAddress, ?string $locale)
+    public function validateLogin(array $loginInformation): array
     {
         $errors = [];
         $validator = Validation::createValidator();
+
+        $email = $loginInformation['email'] ?? '';
+        $password = $loginInformation['password'] ?? '';
+        $locale = $loginInformation['locale'] ?? null;
+
+        if ($locale !== null) {
+            $this->translator->setLocale($locale);
+        }
 
         $emailViolation = $validator->validate(
             $email,
@@ -58,8 +62,9 @@ class UserService
                 new NotBlank()
             ]
         );
+        $emailString = $this->translator->trans('validation_email');
         foreach ($emailViolation as $violation) {
-            $errors[] = $this->translator->trans($violation->getMessage(), [], [], $locale);
+            $errors[] = $emailString . $this->translator->trans($violation->getMessage());
         }
 
 
@@ -69,27 +74,9 @@ class UserService
                 new NotBlank()
             ]
         );
+        $passwordString = $this->translator->trans('validation_password');
         foreach ($passwordViolation as $violation) {
-            $errors[] = $this->translator->trans($violation->getMessage(), [], [], $locale);
-        }
-
-
-        $ipAddressViolation = $validator->validate(
-            $ipAddress,
-            [
-                new NotBlank()
-            ]
-        );
-        foreach ($ipAddressViolation as $violation) {
-            $errors[] = $this->translator->trans($violation->getMessage(), [], [], $locale);
-        }
-
-
-        $localeViolation = $validator->validate($locale, [
-            new NotBlank()
-        ]);
-        foreach ($localeViolation as $violation) {
-            $errors[] = $this->translator->trans($violation->getMessage(), [], [], $locale);
+            $errors[] = $passwordString . $this->translator->trans($violation->getMessage());
         }
 
         return $errors;

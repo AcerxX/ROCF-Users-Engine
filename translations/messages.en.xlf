@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="ro" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="validation_value_not_blank">
+                <source>This value should not be blank.</source>
+                <target>This value should not be blank.</target>
+            </trans-unit>
+            <trans-unit id="validation_bad_email_format">
+                <source>This value is not a valid email address.</source>
+                <target>This value is not a valid email address.</target>
+            </trans-unit>
+            <trans-unit id="validation_email">
+                <source>validation_email</source>
+                <target>Email: </target>
+            </trans-unit>
+            <trans-unit id="validation_password">
+                <source>validation_password</source>
+                <target>Password: </target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

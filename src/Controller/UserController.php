@@ -23,30 +23,18 @@ class UserController extends Controller
      */
     public function login(Request $request, UserService $userService)
     {
-        // Create form of LoginRequest Type
-        $form = $this->createForm(LoginRequest::class);
-        // Automatically create the form and validate the input
-        $form->submit($request->request->all());
+        $loginInformation = $request->request->all();
 
-        if ($form->isValid() === false) {
-            return $form->getErrors();
-        }
-
-        $loginInformation = $form->getData();
-        if (\count($errors = $userService->validateLogin($loginInformation['email'], $loginInformation['password'], $loginInformation['ipAddress'], $loginInformation['locale']))) {
-            $data['isError'] = true;
-            $data['errorMessages'] = $errors;
+        $returnData = [
+            'isError' => false
+        ];
+        if (\count($errors = $userService->validateLogin($loginInformation))) {
+            $returnData['isError'] = true;
+            $returnData['errorMessages'] = $errors;
         } else {
 //            $data = $loginService->getUserInformationOnLogin($loginInformation['email'], $loginInformation['password'], $loginInformation['locale']);
         }
 
-        return new JsonResponse(
-            [
-                'isError' => false,
-                'userId' => 12345,
-                'firstName' => 'Alexandru',
-                'lastName' => 'Mihai'
-            ]
-        );
+        return new JsonResponse($returnData);
     }
 }
