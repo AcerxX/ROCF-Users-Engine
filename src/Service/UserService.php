@@ -1,14 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: alexa
- * Date: 07.01.2018
- * Time: 00:46
- */
 
 namespace App\Service;
 
-
+use App\Entity\User;
+use App\Exception\UserNotFoundException;
+use App\Repository\UserRepository;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -28,10 +24,39 @@ class UserService
      */
     protected $translator;
 
-    public function __construct(RegistryInterface $doctrine, TranslatorInterface $translator)
+    /**
+     * @var string
+     */
+    protected $locale;
+
+    /**
+     * @param string $locale
+     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
+     */
+    public function setLocaleForTranslator(string $locale): void
+    {
+        if (empty($locale)) {
+            return;
+        }
+
+        $this->locale = $locale;
+        $this->translator->setLocale($locale);
+    }
+
+    /**
+     * UserService constructor.
+     * @param RegistryInterface $doctrine
+     * @param TranslatorInterface $translator
+     * @param string $_locale
+     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
+     */
+    public function __construct(RegistryInterface $doctrine, TranslatorInterface $translator, string $_locale)
     {
         $this->translator = $translator;
         $this->doctrine = $doctrine;
+        $this->locale = $_locale;
+
+        $this->translator->setLocale($this->locale);
     }
 
     /**
@@ -49,11 +74,6 @@ class UserService
 
         $email = $loginInformation['email'] ?? '';
         $password = $loginInformation['password'] ?? '';
-        $locale = $loginInformation['locale'] ?? null;
-
-        if ($locale !== null) {
-            $this->translator->setLocale($locale);
-        }
 
         $emailViolation = $validator->validate(
             $email,
@@ -80,5 +100,47 @@ class UserService
         }
 
         return $errors;
+    }
+
+    /**
+     * @param string $email
+     * @param string $password
+     * @return User
+     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
+     * @throws UserNotFoundException
+     */
+    public function getUserByEmailAndPassword(string $email, string $password): User
+    {
+        /** @var UserRepository $userRepository */
+        $userRepository = $this->doctrine->getRepository('App:User');
+        /** @var User $user */
+        $user = $userRepository->findOneBy(
+            [
+                'email' => $email,
+                'password' => $password
+            ]
+        );
+
+        if ($user === null) {
+            throw new UserNotFoundException($this->translator->trans('login.user_not_found'));
+        }
+
+        return $user;
+    }
+
+    /**
+     * @param User $user
+     * @return array
+     */
+    public function formatUserForLoginResponse(User $user): array
+    {
+        $formattedUser = [
+            'userId' => $user->getId(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'role' => $user->getRole()->getRole()
+        ];
+
+        return $formattedUser;
     }
 }

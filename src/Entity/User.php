@@ -49,7 +49,7 @@ class User
     /**
      * @var Role
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\Role")
+     * @ORM\OneToOne(targetEntity="App\Entity\Role", fetch="EXTRA_LAZY")
      * @ORM\JoinColumn(name="role_id", referencedColumnName="id")
      */
     private $role;

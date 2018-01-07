@@ -18,6 +18,10 @@
                 <source>validation_password</source>
                 <target>Parola: </target>
             </trans-unit>
+            <trans-unit id="login.user_not_found">
+                <source>login.user_not_found</source>
+                <target>Nu a fost gasit niciun utilizator pentru datele introduse.</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>
