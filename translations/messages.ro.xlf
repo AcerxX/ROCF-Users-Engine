@@ -11,16 +11,28 @@
                 <target>Email-ul introdus nu este valid.</target>
             </trans-unit>
             <trans-unit id="validation.email">
-                <source>validation_email</source>
+                <source>validation.email</source>
                 <target>Email: </target>
             </trans-unit>
             <trans-unit id="validation.password">
-                <source>validation_password</source>
+                <source>validation.password</source>
                 <target>Parola: </target>
+            </trans-unit>
+            <trans-unit id="validation.first_name">
+                <source>validation.first_name</source>
+                <target>Prenume: </target>
+            </trans-unit>
+            <trans-unit id="validation.last_name">
+                <source>validation.last_name</source>
+                <target>Nume: </target>
             </trans-unit>
             <trans-unit id="login.user_not_found">
                 <source>login.user_not_found</source>
                 <target>Nu a fost gasit niciun utilizator pentru datele introduse.</target>
+            </trans-unit>
+            <trans-unit id="register.user_already_exists">
+                <source>register.user_already_exists</source>
+                <target>Email-ul este deja inregistrat pe un alt cont.</target>
             </trans-unit>
         </body>
     </file>

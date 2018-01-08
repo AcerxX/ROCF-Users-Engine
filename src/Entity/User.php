@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class User
 {
+    public const ROLE_USER = 'USER';
+    public const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
+    public const ROLE_SUPERUSER = 'SUPERUSER';
+
     /**
      * @var integer
      *
@@ -47,10 +51,9 @@ class User
     private $lastName;
 
     /**
-     * @var Role
+     * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\Role", fetch="EXTRA_LAZY")
-     * @ORM\JoinColumn(name="role_id", referencedColumnName="id")
+     * @ORM\Column(type="string", length=50)
      */
     private $role;
 
@@ -145,18 +148,18 @@ class User
     }
 
     /**
-     * @return Role
+     * @return string
      */
-    public function getRole(): Role
+    public function getRole(): string
     {
         return $this->role;
     }
 
     /**
-     * @param Role $role
+     * @param string $role
      * @return User
      */
-    public function setRole(Role $role): User
+    public function setRole(string $role): User
     {
         $this->role = $role;
         return $this;

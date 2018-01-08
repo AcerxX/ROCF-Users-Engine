@@ -11,16 +11,28 @@
                 <target>This value is not a valid email address.</target>
             </trans-unit>
             <trans-unit id="validation.email">
-                <source>validation_email</source>
+                <source>validation.email</source>
                 <target>Email: </target>
             </trans-unit>
             <trans-unit id="validation.password">
-                <source>validation_password</source>
+                <source>validation.password</source>
                 <target>Password: </target>
+            </trans-unit>
+            <trans-unit id="validation.first_name">
+                <source>validation.first_name</source>
+                <target>First Name: </target>
+            </trans-unit>
+            <trans-unit id="validation.last_name">
+                <source>validation.last_name</source>
+                <target>First Name: </target>
             </trans-unit>
             <trans-unit id="login.user_not_found">
                 <source>login.user_not_found</source>
                 <target>No registered user was found for the provided email and password.</target>
+            </trans-unit>
+            <trans-unit id="register.user_already_exists">
+                <source>register.user_already_exists</source>
+                <target>The provided email is already registered.</target>
             </trans-unit>
         </body>
     </file>

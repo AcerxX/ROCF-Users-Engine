@@ -2,7 +2,10 @@
 
 namespace App\Service;
 
+use App\Dto\UserRequestDto;
+use App\Entity\Role;
 use App\Entity\User;
+use App\Exception\UserAlreadyExistsException;
 use App\Exception\UserNotFoundException;
 use App\Repository\UserRepository;
 use Doctrine\Bundle\DoctrineBundle\Registry;
@@ -30,10 +33,9 @@ class UserService
     protected $locale;
 
     /**
-     * @param string $locale
-     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
+     * @param null|string $locale
      */
-    public function setLocaleForTranslator(string $locale): void
+    public function setLocaleForTranslator(?string $locale): void
     {
         if (empty($locale)) {
             return;
@@ -48,7 +50,6 @@ class UserService
      * @param RegistryInterface $doctrine
      * @param TranslatorInterface $translator
      * @param string $_locale
-     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
      */
     public function __construct(RegistryInterface $doctrine, TranslatorInterface $translator, string $_locale)
     {
@@ -59,57 +60,65 @@ class UserService
         $this->translator->setLocale($this->locale);
     }
 
+
     /**
-     * @param array $loginInformation
+     * @param UserRequestDto $userRequestDto
      * @return array
-     * @throws \Symfony\Component\Validator\Exception\MissingOptionsException
-     * @throws \Symfony\Component\Validator\Exception\InvalidOptionsException
-     * @throws \Symfony\Component\Validator\Exception\ConstraintDefinitionException
-     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
+     * @throws UserNotFoundException
      */
-    public function validateLogin(array $loginInformation): array
+    public function loginUser(UserRequestDto $userRequestDto): array
     {
-        $errors = [];
+        $this->validateLoginRequest($userRequestDto);
+        $user = $this->getUserByEmailAndPassword($userRequestDto->getEmail(), $userRequestDto->getPassword());
+
+        return $this->formatUserForResponse($user);
+    }
+
+    /**
+     * @param UserRequestDto $userRequestDto
+     */
+    private function validateLoginRequest(UserRequestDto $userRequestDto): void
+    {
+        $errorMessage = '';
         $validator = Validation::createValidator();
 
-        $email = $loginInformation['email'] ?? '';
-        $password = $loginInformation['password'] ?? '';
-
         $emailViolation = $validator->validate(
-            $email,
+            $userRequestDto->getEmail(),
             [
                 new Email(),
                 new NotBlank()
             ]
         );
-        $emailString = $this->translator->trans('validation_email');
+        $emailString = $this->translator->trans('validation.email');
         foreach ($emailViolation as $violation) {
-            $errors[] = $emailString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $emailString . $this->translator->trans($violation->getMessage());
         }
 
 
         $passwordViolation = $validator->validate(
-            $password,
+            $userRequestDto->getPassword(),
             [
                 new NotBlank()
             ]
         );
-        $passwordString = $this->translator->trans('validation_password');
+        $passwordString = $this->translator->trans('validation.password');
         foreach ($passwordViolation as $violation) {
-            $errors[] = $passwordString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $passwordString . $this->translator->trans($violation->getMessage());
         }
 
-        return $errors;
+        if (!empty($errorMessage)) {
+            throw new \InvalidArgumentException($errorMessage);
+        }
     }
 
     /**
      * @param string $email
      * @param string $password
+     * @param bool $throwException
      * @return User
-     * @throws \Symfony\Component\Translation\Exception\InvalidArgumentException
      * @throws UserNotFoundException
      */
-    public function getUserByEmailAndPassword(string $email, string $password): User
+    private function getUserByEmailAndPassword(string $email, string $password, bool $throwException = true): User
     {
         /** @var UserRepository $userRepository */
         $userRepository = $this->doctrine->getRepository('App:User');
@@ -121,7 +130,7 @@ class UserService
             ]
         );
 
-        if ($user === null) {
+        if ($user === null && $throwException) {
             throw new UserNotFoundException($this->translator->trans('login.user_not_found'));
         }
 
@@ -132,15 +141,120 @@ class UserService
      * @param User $user
      * @return array
      */
-    public function formatUserForLoginResponse(User $user): array
+    public function formatUserForResponse(User $user): array
     {
         $formattedUser = [
             'userId' => $user->getId(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
-            'role' => $user->getRole()->getRole()
+            'role' => $user->getRole()
         ];
 
         return $formattedUser;
+    }
+
+
+    /**
+     * @param UserRequestDto $userRequestDto
+     * @return array
+     * @throws UserNotFoundException
+     * @throws UserAlreadyExistsException
+     */
+    public function registerUser(UserRequestDto $userRequestDto): array
+    {
+        $this->validateRegisterRequest($userRequestDto);
+
+        // TODO check only user!!!
+        $alreadyExistingUser = $this->getUserByEmailAndPassword($userRequestDto->getEmail(), $userRequestDto->getPassword(), false);
+        if ($alreadyExistingUser instanceof User) {
+            throw new UserAlreadyExistsException($this->translator->trans('register.user_already_exists'));
+        }
+
+        $user = $this->createUserByRequest($userRequestDto);
+
+        return $this->formatUserForResponse($user);
+    }
+
+    /**
+     * @param UserRequestDto $userRequestDto
+     * @return User
+     */
+    private function createUserByRequest(UserRequestDto $userRequestDto): User
+    {
+        $user = (new User())
+            ->setEmail($userRequestDto->getEmail())
+            ->setPassword($userRequestDto->getPassword())
+            ->setFirstName($userRequestDto->getFirstName())
+            ->setLastName($userRequestDto->getLastName())
+            ->setRole(User::ROLE_USER);
+
+        // Insert the above created user in database
+        $this->doctrine->getManager()->persist($user);
+        $this->doctrine->getManager()->flush();
+
+        return $user;
+    }
+
+    /**
+     * @param UserRequestDto $userRequestDto
+     */
+    private function validateRegisterRequest(UserRequestDto $userRequestDto): void
+    {
+        $errorMessage = '';
+        $validator = Validation::createValidator();
+
+        $emailViolation = $validator->validate(
+            $userRequestDto->getEmail(),
+            [
+                new Email(),
+                new NotBlank()
+            ]
+        );
+        $emailString = $this->translator->trans('validation.email');
+        foreach ($emailViolation as $violation) {
+            $errorMessage .= $emailString . $this->translator->trans($violation->getMessage());
+        }
+
+
+        $passwordViolation = $validator->validate(
+            $userRequestDto->getPassword(),
+            [
+                new NotBlank()
+            ]
+        );
+        $passwordString = $this->translator->trans('validation.password');
+        foreach ($passwordViolation as $violation) {
+            $errorMessage .= $passwordString . $this->translator->trans($violation->getMessage());
+        }
+
+
+        $firstNameViolation = $validator->validate(
+            $userRequestDto->getFirstName(),
+            [
+                new Email(),
+                new NotBlank()
+            ]
+        );
+        $firstNameString = $this->translator->trans('validation.first_name');
+        foreach ($firstNameViolation as $violation) {
+            $errorMessage .= $firstNameString . $this->translator->trans($violation->getMessage());
+        }
+
+
+        $lastNameViolation = $validator->validate(
+            $userRequestDto->getLastName(),
+            [
+                new Email(),
+                new NotBlank()
+            ]
+        );
+        $lastNameString = $this->translator->trans('validation.last_name');
+        foreach ($lastNameViolation as $violation) {
+            $errorMessage .= $lastNameString . $this->translator->trans($violation->getMessage());
+        }
+
+        if (!empty($errorMessage)) {
+            throw new \InvalidArgumentException($errorMessage);
+        }
     }
 }
