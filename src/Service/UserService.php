@@ -91,7 +91,7 @@ class UserService
         );
         $emailString = $this->translator->trans('validation.email');
         foreach ($emailViolation as $violation) {
-            $errorMessage .= $emailString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $emailString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
         }
 
 
@@ -103,7 +103,7 @@ class UserService
         );
         $passwordString = $this->translator->trans('validation.password');
         foreach ($passwordViolation as $violation) {
-            $errorMessage .= $passwordString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $passwordString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
         }
 
         if (!empty($errorMessage)) {
@@ -157,16 +157,13 @@ class UserService
     /**
      * @param UserRequestDto $userRequestDto
      * @return array
-     * @throws UserNotFoundException
      * @throws UserAlreadyExistsException
      */
     public function registerUser(UserRequestDto $userRequestDto): array
     {
         $this->validateRegisterRequest($userRequestDto);
 
-        // TODO check only user!!!
-        $alreadyExistingUser = $this->getUserByEmailAndPassword($userRequestDto->getEmail(), $userRequestDto->getPassword(), false);
-        if ($alreadyExistingUser instanceof User) {
+        if ($this->checkUserAlreadyExists($userRequestDto->getEmail())) {
             throw new UserAlreadyExistsException($this->translator->trans('register.user_already_exists'));
         }
 
@@ -196,6 +193,24 @@ class UserService
     }
 
     /**
+     * @param string $email
+     * @return bool
+     */
+    private function checkUserAlreadyExists(string $email): bool
+    {
+        /** @var UserRepository $userRepository */
+        $userRepository = $this->doctrine->getRepository('App:User');
+        /** @var User[] $user */
+        $users = $userRepository->findBy(
+            [
+                'email' => $email
+            ]
+        );
+
+        return \count($users) > 0;
+    }
+
+    /**
      * @param UserRequestDto $userRequestDto
      */
     private function validateRegisterRequest(UserRequestDto $userRequestDto): void
@@ -212,7 +227,7 @@ class UserService
         );
         $emailString = $this->translator->trans('validation.email');
         foreach ($emailViolation as $violation) {
-            $errorMessage .= $emailString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $emailString . ' ' .  $this->translator->trans($violation->getMessage()) . ' ';
         }
 
 
@@ -224,33 +239,31 @@ class UserService
         );
         $passwordString = $this->translator->trans('validation.password');
         foreach ($passwordViolation as $violation) {
-            $errorMessage .= $passwordString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $passwordString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
         }
 
 
         $firstNameViolation = $validator->validate(
             $userRequestDto->getFirstName(),
             [
-                new Email(),
                 new NotBlank()
             ]
         );
         $firstNameString = $this->translator->trans('validation.first_name');
         foreach ($firstNameViolation as $violation) {
-            $errorMessage .= $firstNameString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $firstNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
         }
 
 
         $lastNameViolation = $validator->validate(
             $userRequestDto->getLastName(),
             [
-                new Email(),
                 new NotBlank()
             ]
         );
         $lastNameString = $this->translator->trans('validation.last_name');
         foreach ($lastNameViolation as $violation) {
-            $errorMessage .= $lastNameString . $this->translator->trans($violation->getMessage());
+            $errorMessage .= $lastNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
         }
 
         if (!empty($errorMessage)) {

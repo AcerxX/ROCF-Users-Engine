@@ -4,27 +4,27 @@
         <body>
             <trans-unit id="validation.value_not_blank">
                 <source>This value should not be blank.</source>
-                <target>Acest camp nu poate fi gol.</target>
+                <target>Acest camp nu poate fi gol!</target>
             </trans-unit>
             <trans-unit id="validation.bad_email_format">
                 <source>This value is not a valid email address.</source>
-                <target>Email-ul introdus nu este valid.</target>
+                <target>Email-ul introdus nu este valid!</target>
             </trans-unit>
             <trans-unit id="validation.email">
                 <source>validation.email</source>
-                <target>Email: </target>
+                <target>Eroare la validarea email-ului:</target>
             </trans-unit>
             <trans-unit id="validation.password">
                 <source>validation.password</source>
-                <target>Parola: </target>
+                <target>Eroare la validarea parolei:</target>
             </trans-unit>
             <trans-unit id="validation.first_name">
                 <source>validation.first_name</source>
-                <target>Prenume: </target>
+                <target>Eroare la validarea prenumelui:</target>
             </trans-unit>
             <trans-unit id="validation.last_name">
                 <source>validation.last_name</source>
-                <target>Nume: </target>
+                <target>Eroare la validarea numelui:</target>
             </trans-unit>
             <trans-unit id="login.user_not_found">
                 <source>login.user_not_found</source>
