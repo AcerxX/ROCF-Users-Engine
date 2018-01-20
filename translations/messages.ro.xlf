@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="ro" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="validation.value_not_blank">
+                <source>This value should not be blank.</source>
+                <target>Acest camp nu poate fi gol!</target>
+            </trans-unit>
+            <trans-unit id="validation.bad_email_format">
+                <source>This value is not a valid email address.</source>
+                <target>Email-ul introdus nu este valid!</target>
+            </trans-unit>
+            <trans-unit id="validation.email">
+                <source>validation.email</source>
+                <target>Eroare la validarea email-ului:</target>
+            </trans-unit>
+            <trans-unit id="validation.password">
+                <source>validation.password</source>
+                <target>Eroare la validarea parolei:</target>
+            </trans-unit>
+            <trans-unit id="validation.first_name">
+                <source>validation.first_name</source>
+                <target>Eroare la validarea prenumelui:</target>
+            </trans-unit>
+            <trans-unit id="validation.last_name">
+                <source>validation.last_name</source>
+                <target>Eroare la validarea numelui:</target>
+            </trans-unit>
+            <trans-unit id="login.user_not_found">
+                <source>login.user_not_found</source>
+                <target>Nu a fost gasit niciun utilizator pentru datele introduse.</target>
+            </trans-unit>
+            <trans-unit id="register.user_already_exists">
+                <source>register.user_already_exists</source>
+                <target>Email-ul este deja inregistrat pe un alt cont.</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
