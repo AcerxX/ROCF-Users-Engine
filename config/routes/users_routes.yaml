@@ -7,3 +7,8 @@ register:
     path: register
     controller: App\Controller\UserController::register
     methods: [POST]
+
+editProfile:
+    path: edit-profile
+    controller: App\Controller\UserController::editProfile
+    methods: [POST]

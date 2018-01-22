@@ -58,6 +58,13 @@ class User
     private $role;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(type="string", length=50)
+     */
+    private $status;
+
+    /**
      * @return int
      */
     public function getId(): int
@@ -162,6 +169,24 @@ class User
     public function setRole(string $role): User
     {
         $this->role = $role;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStatus(): int
+    {
+        return $this->status;
+    }
+
+    /**
+     * @param int $status
+     * @return User
+     */
+    public function setStatus(int $status): User
+    {
+        $this->status = $status;
         return $this;
     }
 }
