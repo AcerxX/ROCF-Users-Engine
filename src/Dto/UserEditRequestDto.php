@@ -2,6 +2,8 @@
 
 namespace App\Dto;
 
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class UserEditRequestDto
 {
@@ -18,7 +20,7 @@ class UserEditRequestDto
     /**
      * @var string
      */
-    private $locale;
+    private $locale = 'ro';
 
     /**
      * @return string
@@ -50,9 +52,13 @@ class UserEditRequestDto
      * @param UserChangesDto $changes
      * @return UserEditRequestDto
      */
-    public function setChanges(UserChangesDto $changes): UserEditRequestDto
+    public function setChanges(array $changes): UserEditRequestDto
     {
-        $this->changes = $changes;
+        $serializer = new Serializer([new ObjectNormalizer()]);
+        /** @var UserEditRequestDto $userEditRequestDto */
+        $userEditRequestDto = $serializer->denormalize($changes, UserChangesDto::class);
+
+        $this->changes = $userEditRequestDto;
         return $this;
     }
 

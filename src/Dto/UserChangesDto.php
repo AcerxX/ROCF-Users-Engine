@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-
 class UserChangesDto
 {
     /**
@@ -23,7 +22,7 @@ class UserChangesDto
     /**
      * @return string
      */
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -41,7 +40,7 @@ class UserChangesDto
     /**
      * @return string
      */
-    public function getFirstName(): string
+    public function getFirstName(): ?string
     {
         return $this->firstName;
     }
@@ -59,7 +58,7 @@ class UserChangesDto
     /**
      * @return string
      */
-    public function getLastName(): string
+    public function getLastName(): ?string
     {
         return $this->lastName;
     }
@@ -73,6 +72,4 @@ class UserChangesDto
         $this->lastName = $lastName;
         return $this;
     }
-
-
 }
