@@ -2,8 +2,9 @@
 
 namespace App\Service;
 
+use App\Dto\UserChangesDto;
+use App\Dto\UserEditRequestDto;
 use App\Dto\UserRequestDto;
-use App\Entity\Role;
 use App\Entity\User;
 use App\Exception\UserAlreadyExistsException;
 use App\Exception\UserNotFoundException;
@@ -60,6 +61,83 @@ class UserService
         $this->translator->setLocale($this->locale);
     }
 
+    /**
+     * @param UserEditRequestDto $userEditRequestDto
+     * @return array
+     * @throws UserNotFoundException
+     */
+    public function editUserProfile(UserEditRequestDto $userEditRequestDto): array
+    {
+        $this->validateEditProfileRequest($userEditRequestDto);
+        $user = $this->getUserFromDatabase($userEditRequestDto);
+        $user = $this->editUserByRequest($user, $userEditRequestDto->getChanges());
+
+        return $this->formatUserForResponse($user);
+    }
+
+    /**
+     * @param UserEditRequestDto $userEditRequestDto
+     */
+    private function validateEditProfileRequest(UserEditRequestDto $userEditRequestDto): void
+    {
+        $errorMessage = '';
+        $validator = Validation::createValidator();
+
+        $emailViolation = $validator->validate(
+            $userEditRequestDto->getEmail(),
+            [
+                new Email(),
+                new NotBlank()
+            ]
+        );
+        $emailString = $this->translator->trans('validation.email');
+        foreach ($emailViolation as $violation) {
+            $errorMessage .= $emailString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
+        }
+
+        if (null !== $userEditRequestDto->getChanges()->getPassword()) {
+            $passwordViolation = $validator->validate(
+                $userEditRequestDto->getChanges()->getPassword(),
+                [
+                    new NotBlank()
+                ]
+            );
+            $passwordString = $this->translator->trans('validation.password');
+            foreach ($passwordViolation as $violation) {
+                $errorMessage .= $passwordString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
+            }
+        }
+
+        if (null !== $userEditRequestDto->getChanges()->getFirstName()) {
+            $firstNameViolation = $validator->validate(
+                $userEditRequestDto->getChanges()->getFirstName(),
+                [
+                    new NotBlank()
+                ]
+            );
+            $firstNameString = $this->translator->trans('validation.first_name');
+            foreach ($firstNameViolation as $violation) {
+                $errorMessage .= $firstNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
+            }
+        }
+
+        if (null !== $userEditRequestDto->getChanges()->getLastName()) {
+            $lastNameViolation = $validator->validate(
+                $userEditRequestDto->getChanges()->getLastName(),
+                [
+                    new NotBlank()
+                ]
+            );
+            $lastNameString = $this->translator->trans('validation.last_name');
+            foreach ($lastNameViolation as $violation) {
+                $errorMessage .= $lastNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
+            }
+        }
+
+        if (!empty($errorMessage)) {
+            throw new \InvalidArgumentException($errorMessage);
+        }
+    }
 
     /**
      * @param UserRequestDto $userRequestDto
@@ -192,6 +270,27 @@ class UserService
         return $user;
     }
 
+    private function editUserByRequest(User $user, UserChangesDto $userChangesDto): User
+    {
+        if (null !== $userChangesDto->getFirstName()) {
+            $user->setFirstName($userChangesDto->getFirstName());
+        }
+
+        if (null !== $userChangesDto->getLastName()) {
+            $user->setLastName($userChangesDto->getLastName());
+        }
+
+        if (null !== $userChangesDto->getPassword()) {
+            $user->setPassword($userChangesDto->getPassword());
+        }
+
+        // Insert the above created user in database
+        $this->doctrine->getManager()->persist($user);
+        $this->doctrine->getManager()->flush();
+
+        return $user;
+    }
+
     /**
      * @param string $email
      * @return bool
@@ -227,7 +326,7 @@ class UserService
         );
         $emailString = $this->translator->trans('validation.email');
         foreach ($emailViolation as $violation) {
-            $errorMessage .= $emailString . ' ' .  $this->translator->trans($violation->getMessage()) . ' ';
+            $errorMessage .= $emailString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
         }
 
 
@@ -269,5 +368,27 @@ class UserService
         if (!empty($errorMessage)) {
             throw new \InvalidArgumentException($errorMessage);
         }
+    }
+
+    /**
+     * @param UserEditRequestDto $userEditRequestDto
+     * @return User
+     * @throws UserNotFoundException
+     */
+    private function getUserFromDatabase(UserEditRequestDto $userEditRequestDto): User
+    {
+        /** @var UserRepository $userRepository */
+        $userRepository = $this->doctrine->getRepository('App:User');
+        /** @var User $user */
+        $user = $userRepository->findOneBy(
+            [
+                'email' => $userEditRequestDto->getEmail()
+            ]
+        );
+
+        if ($user === null) {
+            throw new UserNotFoundException($this->translator->trans('login.user_not_found'));
+        }
+        return $user;
     }
 }
