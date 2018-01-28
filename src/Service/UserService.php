@@ -21,17 +21,17 @@ class UserService
     /**
      * @var Registry
      */
-    protected $doctrine;
+    private $doctrine;
 
     /**
      * @var TranslatorInterface
      */
-    protected $translator;
+    private $translator;
 
     /**
      * @var string
      */
-    protected $locale;
+    private $locale;
 
     /**
      * @param null|string $locale
@@ -62,6 +62,26 @@ class UserService
     }
 
     /**
+     * @param $item
+     * @param array $validators
+     * @param string $fieldTranslationKey
+     * @return string
+     */
+    private function validateItem($item, array $validators, string $fieldTranslationKey = ''): string
+    {
+        $errorMessage = '';
+        $validator = Validation::createValidator();
+
+        $violations = $validator->validate($item, $validators);
+        $fieldTranslated = $this->translator->trans($fieldTranslationKey);
+        foreach ($violations as $violation) {
+            $errorMessage .= $fieldTranslated . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
+        }
+
+        return $errorMessage;
+    }
+
+    /**
      * @param UserEditRequestDto $userEditRequestDto
      * @return array
      * @throws UserNotFoundException
@@ -69,7 +89,7 @@ class UserService
     public function editUserProfile(UserEditRequestDto $userEditRequestDto): array
     {
         $this->validateEditProfileRequest($userEditRequestDto);
-        $user = $this->getUserFromDatabase($userEditRequestDto);
+        $user = $this->getUserFromDatabase($userEditRequestDto->getEmail());
         $user = $this->editUserByRequest($user, $userEditRequestDto->getChanges());
 
         return $this->formatUserForResponse($user);
@@ -81,57 +101,47 @@ class UserService
     private function validateEditProfileRequest(UserEditRequestDto $userEditRequestDto): void
     {
         $errorMessage = '';
-        $validator = Validation::createValidator();
 
-        $emailViolation = $validator->validate(
+        $emailValidator = new Email();
+        $notBlankValidator = new NotBlank();
+
+        $errorMessage .= $this->validateItem(
             $userEditRequestDto->getEmail(),
             [
-                new Email(),
-                new NotBlank()
-            ]
+                $emailValidator,
+                $notBlankValidator
+            ],
+            'validation.email'
         );
-        $emailString = $this->translator->trans('validation.email');
-        foreach ($emailViolation as $violation) {
-            $errorMessage .= $emailString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
         if (null !== $userEditRequestDto->getChanges()->getPassword()) {
-            $passwordViolation = $validator->validate(
+            $errorMessage .= $this->validateItem(
                 $userEditRequestDto->getChanges()->getPassword(),
                 [
-                    new NotBlank()
-                ]
+                    $notBlankValidator
+                ],
+                'validation.password'
             );
-            $passwordString = $this->translator->trans('validation.password');
-            foreach ($passwordViolation as $violation) {
-                $errorMessage .= $passwordString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-            }
         }
 
         if (null !== $userEditRequestDto->getChanges()->getFirstName()) {
-            $firstNameViolation = $validator->validate(
+            $errorMessage .= $this->validateItem(
                 $userEditRequestDto->getChanges()->getFirstName(),
                 [
-                    new NotBlank()
-                ]
+                    $notBlankValidator
+                ],
+                'validation.first_name'
             );
-            $firstNameString = $this->translator->trans('validation.first_name');
-            foreach ($firstNameViolation as $violation) {
-                $errorMessage .= $firstNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-            }
         }
 
         if (null !== $userEditRequestDto->getChanges()->getLastName()) {
-            $lastNameViolation = $validator->validate(
+            $errorMessage .= $this->validateItem(
                 $userEditRequestDto->getChanges()->getLastName(),
                 [
-                    new NotBlank()
-                ]
+                    $notBlankValidator
+                ],
+                'validation.last_name'
             );
-            $lastNameString = $this->translator->trans('validation.last_name');
-            foreach ($lastNameViolation as $violation) {
-                $errorMessage .= $lastNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-            }
         }
 
         if (!empty($errorMessage)) {
@@ -158,31 +168,26 @@ class UserService
     private function validateLoginRequest(UserRequestDto $userRequestDto): void
     {
         $errorMessage = '';
-        $validator = Validation::createValidator();
 
-        $emailViolation = $validator->validate(
+        $emailValidator = new Email();
+        $notBlankValidator = new NotBlank();
+
+        $errorMessage .= $this->validateItem(
             $userRequestDto->getEmail(),
             [
-                new Email(),
-                new NotBlank()
-            ]
+                $emailValidator,
+                $notBlankValidator
+            ],
+            'validation.email'
         );
-        $emailString = $this->translator->trans('validation.email');
-        foreach ($emailViolation as $violation) {
-            $errorMessage .= $emailString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
-
-        $passwordViolation = $validator->validate(
+        $errorMessage .= $this->validateItem(
             $userRequestDto->getPassword(),
             [
-                new NotBlank()
-            ]
+                $notBlankValidator
+            ],
+            'validation.password'
         );
-        $passwordString = $this->translator->trans('validation.password');
-        foreach ($passwordViolation as $violation) {
-            $errorMessage .= $passwordString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
         if (!empty($errorMessage)) {
             throw new \InvalidArgumentException($errorMessage);
@@ -315,55 +320,42 @@ class UserService
     private function validateRegisterRequest(UserRequestDto $userRequestDto): void
     {
         $errorMessage = '';
-        $validator = Validation::createValidator();
 
-        $emailViolation = $validator->validate(
+        $emailValidator = new Email();
+        $notBlankValidator = new NotBlank();
+
+        $errorMessage .= $this->validateItem(
             $userRequestDto->getEmail(),
             [
-                new Email(),
-                new NotBlank()
-            ]
+                $emailValidator,
+                $notBlankValidator
+            ],
+            'validation.email'
         );
-        $emailString = $this->translator->trans('validation.email');
-        foreach ($emailViolation as $violation) {
-            $errorMessage .= $emailString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
-
-        $passwordViolation = $validator->validate(
+        $errorMessage .= $this->validateItem(
             $userRequestDto->getPassword(),
             [
-                new NotBlank()
-            ]
+                $notBlankValidator
+            ],
+            'validation.password'
         );
-        $passwordString = $this->translator->trans('validation.password');
-        foreach ($passwordViolation as $violation) {
-            $errorMessage .= $passwordString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
-
-        $firstNameViolation = $validator->validate(
+        $errorMessage .= $this->validateItem(
             $userRequestDto->getFirstName(),
             [
-                new NotBlank()
-            ]
+                $notBlankValidator
+            ],
+            'validation.first_name'
         );
-        $firstNameString = $this->translator->trans('validation.first_name');
-        foreach ($firstNameViolation as $violation) {
-            $errorMessage .= $firstNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
-
-        $lastNameViolation = $validator->validate(
+        $errorMessage .= $this->validateItem(
             $userRequestDto->getLastName(),
             [
-                new NotBlank()
-            ]
+                $notBlankValidator
+            ],
+            'validation.last_name'
         );
-        $lastNameString = $this->translator->trans('validation.last_name');
-        foreach ($lastNameViolation as $violation) {
-            $errorMessage .= $lastNameString . ' ' . $this->translator->trans($violation->getMessage()) . ' ';
-        }
 
         if (!empty($errorMessage)) {
             throw new \InvalidArgumentException($errorMessage);
@@ -371,18 +363,18 @@ class UserService
     }
 
     /**
-     * @param UserEditRequestDto $userEditRequestDto
+     * @param string $email
      * @return User
      * @throws UserNotFoundException
      */
-    private function getUserFromDatabase(UserEditRequestDto $userEditRequestDto): User
+    private function getUserFromDatabase(string $email): User
     {
         /** @var UserRepository $userRepository */
         $userRepository = $this->doctrine->getRepository('App:User');
         /** @var User $user */
         $user = $userRepository->findOneBy(
             [
-                'email' => $userEditRequestDto->getEmail()
+                'email' => $email
             ]
         );
 
@@ -390,5 +382,32 @@ class UserService
             throw new UserNotFoundException($this->translator->trans('login.user_not_found'));
         }
         return $user;
+    }
+
+    /**
+     * @param string $email
+     * @return string
+     * @throws UserNotFoundException
+     */
+    public function getTokenForEmail(string $email): string
+    {
+        $errorMessage = $this->validateItem($email, [new NotBlank()], 'validation.email');
+        if (!empty($errorMessage)) {
+            throw new \InvalidArgumentException($errorMessage);
+        }
+
+        $user = $this->getUserFromDatabase($email);
+
+        return UtilsService::generateRandomToken($user->getEmail());
+    }
+
+    public function sendEmail(
+        string $emailAddress,
+        string $emailBody
+    ): void {
+        $message = (new \Swift_Message('Hello Email'))
+            ->setFrom('roprojectstest@gmail.com')
+            ->setTo($emailAddress)
+            ->setBody($emailBody, 'text/html');
     }
 }

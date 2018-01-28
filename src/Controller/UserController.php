@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Dto\UserEditRequestDto;
 use App\Dto\UserRequestDto;
+use App\Service\EmailService;
 use App\Service\UserService;
+use App\Service\UtilsService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -72,6 +74,44 @@ class UserController extends Controller
 
         return new JsonResponse($returnData);
     }
+
+    public function resetPassword(Request $request, UserService $userService, EmailService $emailService)
+    {
+        $email = $request->request->get('email');
+        $locale = $request->request->get('locale');
+
+        // Set the provided locale on the service. It will be used in case of any error
+        $userService->setLocaleForTranslator($locale);
+
+        // Create dummy response
+        $returnData = [
+            'isError' => false
+        ];
+
+        try {
+            $token = $userService->getTokenForEmail($email);
+
+            $emailBody = $this->renderView(
+                'Accounts/resetPassword.html.twig',
+                [
+                    'resetPasswordLink' =>
+                        'http://'
+                        . $this->container->getParameter('web_experience_host')
+                        . '/reset-password?token='
+                        . $token
+                ]
+            );
+
+            $emailService->sendEmail($email, 'Resetarea parolei pe platforma RoProjects', $emailBody);
+        } catch (\Exception $e) {
+            $returnData['isError'] = true;
+            $returnData['errorMessage'] = $e->getMessage();
+        }
+
+        return new JsonResponse($returnData);
+    }
+
+
     public function editProfile(Request $request, UserService $userService): JsonResponse
     {
         // Get all JSON content from request and denormalize it as UserRequestDto
@@ -96,6 +136,4 @@ class UserController extends Controller
 
         return new JsonResponse($returnData);
     }
-
-
 }

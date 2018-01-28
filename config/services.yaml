@@ -2,6 +2,7 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'ro'
+    web_experience_host: '192.168.1.110'
 
 services:
     # default configuration for services in *this* file

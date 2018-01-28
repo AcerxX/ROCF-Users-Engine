@@ -8,6 +8,11 @@ register:
     controller: App\Controller\UserController::register
     methods: [POST]
 
+resetPassword:
+    path: reset-password
+    controller: App\Controller\UserController::resetPassword
+    methods: [POST]
+
 editProfile:
     path: edit-profile
     controller: App\Controller\UserController::editProfile
