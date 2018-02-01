@@ -12,7 +12,7 @@ class UsersAuthenticateTest extends BaseApiTest
                 'userId' => true,
                 'firstName' => true,
                 'lastName' => true,
-                'role' => true
+                'roles' => false
             ]
         ];
 

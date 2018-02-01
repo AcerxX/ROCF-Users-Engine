@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Dto\UserEditRequestDto;
 use App\Dto\UserRequestDto;
+use App\Exception\UserNotFoundException;
 use App\Service\EmailService;
 use App\Service\UserService;
 use App\Service\UtilsService;
@@ -20,24 +21,18 @@ class UserController extends Controller
      * @param UserService $userService
      * @return JsonResponse
      */
-    public function login(Request $request, UserService $userService)
+    public function login(Request $request, UserService $userService): JsonResponse
     {
-        // Get all JSON content from request and denormalize it as UserRequestDto
-        $serializer = new Serializer([new ObjectNormalizer()]);
-        /** @var UserRequestDto $userRequestDto */
-        $userRequestDto = $serializer->denormalize($request->request->all(), UserRequestDto::class);
+        $email = $request->request->get('email');
 
-        // Set the provided locale on the service. It will be used in case of any error
-        $userService->setLocaleForTranslator($userRequestDto->getLocale());
-
-        // Create dummy response
         $returnData = [
             'isError' => false
         ];
 
         try {
-            $returnData['userInformation'] = $userService->loginUser($userRequestDto);
-        } catch (\Exception $e) {
+            $user = $userService->getUserFromDatabase($email);
+            $returnData['userInformation'] = $userService->formatUserForResponse($user, true);
+        } catch (UserNotFoundException $e) {
             $returnData['isError'] = true;
             $returnData['errorMessage'] = $e->getMessage();
         }

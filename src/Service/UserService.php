@@ -222,16 +222,22 @@ class UserService
 
     /**
      * @param User $user
+     * @param bool $includePassword
      * @return array
      */
-    public function formatUserForResponse(User $user): array
+    public function formatUserForResponse(User $user, bool $includePassword = false): array
     {
         $formattedUser = [
             'userId' => $user->getId(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
-            'role' => $user->getRole()
+            'roles' => ['ROLE_USER']
         ];
+
+        if ($includePassword) {
+            $formattedUser['password'] = $user->getPassword();
+            $formattedUser['salt'] = null;
+        }
 
         return $formattedUser;
     }
@@ -266,7 +272,8 @@ class UserService
             ->setPassword($userRequestDto->getPassword())
             ->setFirstName($userRequestDto->getFirstName())
             ->setLastName($userRequestDto->getLastName())
-            ->setRole(User::ROLE_USER);
+            ->setRole(User::ROLE_USER)
+            ->setStatus(User::STATUS_ACTIVE);
 
         // Insert the above created user in database
         $this->doctrine->getManager()->persist($user);
@@ -367,7 +374,7 @@ class UserService
      * @return User
      * @throws UserNotFoundException
      */
-    private function getUserFromDatabase(string $email): User
+    public function getUserFromDatabase(string $email): User
     {
         /** @var UserRepository $userRepository */
         $userRepository = $this->doctrine->getRepository('App:User');

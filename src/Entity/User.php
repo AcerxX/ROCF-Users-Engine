@@ -13,6 +13,9 @@ class User
     public const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
     public const ROLE_SUPERUSER = 'SUPERUSER';
 
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_INACTIVE = 0;
+
     /**
      * @var integer
      *
@@ -60,7 +63,7 @@ class User
     /**
      * @var integer
      *
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="integer", length=1)
      */
     private $status;
 

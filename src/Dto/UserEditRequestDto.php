@@ -49,7 +49,7 @@ class UserEditRequestDto
     }
 
     /**
-     * @param UserChangesDto $changes
+     * @param array $changes
      * @return UserEditRequestDto
      */
     public function setChanges(array $changes): UserEditRequestDto
