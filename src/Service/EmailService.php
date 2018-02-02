@@ -71,8 +71,8 @@ class EmailService
         $message = (new \Swift_Message($subject))
             ->setFrom('roprojectstest@gmail.com')
             ->setTo($recipientEmail)
-            ->setBody($emailBody, 'text/html');
-//            ->addPart($emailBody, 'text/plain');
+            ->setBody($emailBody, 'text/html')
+            ->addPart($emailBody, 'text/plain');
 
         $this->mailer->send($message);
     }

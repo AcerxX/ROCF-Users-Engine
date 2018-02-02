@@ -68,6 +68,12 @@ class User
     private $status;
 
     /**
+     * @var Token[]
+     * @ORM\OneToMany(targetEntity="Token", mappedBy="user")
+     */
+    private $tokens = [];
+
+    /**
      * @return int
      */
     public function getId(): int
@@ -192,4 +198,45 @@ class User
         $this->status = $status;
         return $this;
     }
+
+    /**
+     * @return Token[]
+     */
+    public function getTokens(): array
+    {
+        return $this->tokens;
+    }
+
+    /**
+     * @param Token[] $tokens
+     * @return User
+     */
+    public function setTokens(array $tokens): User
+    {
+        $this->tokens = $tokens;
+        return $this;
+    }
+
+    /**
+     * @param Token $token
+     * @return User
+     */
+    public function addToken(Token $token): User
+    {
+        $this->tokens[] = $token;
+        return $this;
+    }
+
+    /**
+     * @param Token $token
+     * @return User
+     */
+    public function removeToken(Token $token): User
+    {
+        if (false !== $key = array_search($token, $this->tokens, true)) {
+            array_splice($this->tokens, $key, 1);
+        }
+        return $this;
+    }
+
 }

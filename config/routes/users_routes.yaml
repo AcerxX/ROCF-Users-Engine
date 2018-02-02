@@ -17,3 +17,8 @@ editProfile:
     path: edit-profile
     controller: App\Controller\UserController::editProfile
     methods: [POST]
+
+checkToken:
+    path: check-token
+    controller: App\Controller\UserController::checkToken
+    methods: [POST]

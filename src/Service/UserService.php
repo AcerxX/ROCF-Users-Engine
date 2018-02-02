@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Dto\UserChangesDto;
 use App\Dto\UserEditRequestDto;
 use App\Dto\UserRequestDto;
+use App\Entity\Token;
 use App\Entity\User;
 use App\Exception\UserAlreadyExistsException;
 use App\Exception\UserNotFoundException;
@@ -393,10 +394,10 @@ class UserService
 
     /**
      * @param string $email
-     * @return string
+     * @return Token
      * @throws UserNotFoundException
      */
-    public function getTokenForEmail(string $email): string
+    public function getTokenForEmail(string $email): Token
     {
         $errorMessage = $this->validateItem($email, [new NotBlank()], 'validation.email');
         if (!empty($errorMessage)) {
@@ -405,16 +406,27 @@ class UserService
 
         $user = $this->getUserFromDatabase($email);
 
-        return UtilsService::generateRandomToken($user->getEmail());
+        $tokenString = UtilsService::generateRandomToken($user->getEmail());
+        return $this->createTokenForUser($tokenString, $user);
     }
 
-    public function sendEmail(
-        string $emailAddress,
-        string $emailBody
-    ): void {
-        $message = (new \Swift_Message('Hello Email'))
-            ->setFrom('roprojectstest@gmail.com')
-            ->setTo($emailAddress)
-            ->setBody($emailBody, 'text/html');
+    /**
+     * @param $tokenString
+     * @param $user
+     * @return Token
+     */
+    public function createTokenForUser($tokenString, $user): Token
+    {
+        $entityManager = $this->doctrine->getManager();
+        $token = (new Token())
+            ->setToken($tokenString)
+            ->setType(Token::TYPE_RESET_PASSWORD)
+            ->setUser($user)
+            ->setStatus(Token::STATUS_ACTIVE);
+
+        $entityManager->persist($token);
+        $entityManager->flush();
+
+        return $token;
     }
 }

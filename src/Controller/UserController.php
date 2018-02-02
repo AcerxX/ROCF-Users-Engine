@@ -93,7 +93,7 @@ class UserController extends Controller
                         'http://'
                         . $this->container->getParameter('web_experience_host')
                         . '/reset-password?token='
-                        . $token
+                        . $token->getToken()
                 ]
             );
 
@@ -127,6 +127,32 @@ class UserController extends Controller
         } catch (\Exception $e) {
             $returnData['isError'] = true;
             $returnData['errorMessage'] = $e->getMessage();
+        }
+
+        return new JsonResponse($returnData);
+    }
+
+    /**
+     * @param Request $request
+     * @param UserService $userService
+     * @return JsonResponse
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function checkToken(Request $request, UserService $userService): JsonResponse
+    {
+        $tokenString = $request->request->get('token', '');
+
+        $returnData = [
+            'isError' => false
+        ];
+
+        $tokenRepository = $this->getDoctrine()->getRepository('App:Token');
+        $token = $tokenRepository->getValidToken($tokenString);
+
+        if ($token === null) {
+            $returnData['isError'] = true;
+        } else {
+            $returnData['userInformation'] = $userService->formatUserForResponse($token->getUser());
         }
 
         return new JsonResponse($returnData);
