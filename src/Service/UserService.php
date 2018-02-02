@@ -231,7 +231,7 @@ class UserService
             'userId' => $user->getId(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER', 'ROLE_ADMIN']
         ];
 
         if ($includePassword) {
