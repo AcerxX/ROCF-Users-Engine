@@ -73,7 +73,7 @@ class UserController extends Controller
     public function resetPassword(Request $request, UserService $userService, EmailService $emailService)
     {
         $email = $request->request->get('email');
-        $locale = $request->request->get('locale');
+        $locale = $request->request->get('locale', 'ro');
 
         // Set the provided locale on the service. It will be used in case of any error
         $userService->setLocaleForTranslator($locale);
@@ -92,6 +92,7 @@ class UserController extends Controller
                     'resetPasswordLink' =>
                         'http://'
                         . $this->container->getParameter('web_experience_host')
+                        . "/$locale"
                         . '/reset-password?token='
                         . $token->getToken()
                 ]

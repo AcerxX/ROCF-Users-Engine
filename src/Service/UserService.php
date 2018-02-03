@@ -230,6 +230,7 @@ class UserService
     {
         $formattedUser = [
             'userId' => $user->getId(),
+            'email' => $user->getEmail(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
             'roles' => ['ROLE_USER', 'ROLE_ADMIN']

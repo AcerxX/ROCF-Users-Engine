@@ -10,6 +10,7 @@ class UsersAuthenticateTest extends BaseApiTest
             'isError' => true,
             'userInformation' => [
                 'userId' => true,
+                'email' => true,
                 'firstName' => true,
                 'lastName' => true,
                 'roles' => false
